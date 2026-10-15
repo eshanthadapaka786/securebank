@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #0b192c;
+  background-color: #f0f4f8;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Claymorphic card utilities */
+.clay-card {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 8px 8px 20px #d1d9e6, -8px -8px 20px #ffffff, inset 1px 1px 1px rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.clay-card-interactive {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 8px 8px 18px #d1d9e6, -8px -8px 18px #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clay-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 12px 12px 24px #cbd5e1, -12px -12px 24px #ffffff;
+}
+
+.clay-inset-panel {
+  background: #f8fafc;
+  border-radius: 1rem;
+  box-shadow: inset 3px 3px 6px #d1d9e6, inset -3px -3px 6px #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.clay-button-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #1e3e62 100%);
+  color: white;
+  border-radius: 0.875rem;
+  box-shadow: 5px 5px 12px #c5d0de, -5px -5px 12px #ffffff;
+  transition: all 0.15s ease-in-out;
+}
+
+.clay-button-primary:hover {
+  opacity: 0.95;
+  box-shadow: 7px 7px 16px #b8c4d4, -7px -7px 16px #ffffff;
+}
+
+.clay-button-primary:active {
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3);
+  transform: scale(0.99);
+}
+
+.clay-button-secondary {
+  background: #ffffff;
+  color: #1e3e62;
+  border-radius: 0.875rem;
+  box-shadow: 5px 5px 12px #d1d9e6, -5px -5px 12px #ffffff;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s ease-in-out;
+}
+
+.clay-button-secondary:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.clay-button-secondary:active {
+  box-shadow: inset 2px 2px 5px #d1d9e6, inset -2px -2px 5px #ffffff;
+}
+
+.clay-badge {
+  border-radius: 9999px;
+  box-shadow: 3px 3px 6px #d1d9e6, -3px -3px 6px #ffffff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
