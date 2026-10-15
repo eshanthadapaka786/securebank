@@ -52,6 +52,32 @@ npm run lint
 
 ---
 
+## 🌐 Deploying to Render
+
+This repository includes a [`render.yaml`](./render.yaml) blueprint for **1-click or automated Static Site** hosting on Render.
+
+### Method A: Connect Repository as a Static Site (Recommended)
+
+1. Sign in to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** in the top navigation and select **Static Site**.
+3. Connect your repository: `https://github.com/eshanthadapaka786/securebank`
+4. Set the following configuration parameters:
+   - **Name**: `securebank-sandbox` (or your preferred name)
+   - **Branch**: `main`
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+5. Click **Create Static Site**.
+
+Render will automatically build and publish your app with a free custom SSL domain (e.g. `https://securebank-sandbox.onrender.com`).
+
+### Method B: Deploy using Render Blueprints
+
+1. In the Render Dashboard, click **Blueprints**.
+2. Select your repository `eshanthadapaka786/securebank`.
+3. Render will automatically detect [`render.yaml`](./render.yaml), configure SPA rewrites (`/*` -> `/index.html`), and deploy.
+
+---
+
 ## 🔑 Fictional Demo Credentials
 
 All authentication is simulated locally in browser memory. No live credentials or banking APIs are used:
