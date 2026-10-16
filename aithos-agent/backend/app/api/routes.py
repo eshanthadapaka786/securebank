@@ -8,17 +8,26 @@ from dataclasses import asdict
 import json
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..privacy.sanitizer import PrivacySanitizer, SanitizationResult
-from ..privacy.detector import PrivacyDetector
-from ..agent.task_manager import task_manager, TaskStatus
-from ..agent.browser_connector import browser_connector
-from ..agent.action_validator import action_validator
-from ..ai.ollama_client import ollama_client
-from ..audit.logger import audit_logger
+try:
+    from ..privacy.sanitizer import PrivacySanitizer
+    from ..privacy.detector import PrivacyDetector
+    from ..agent.task_manager import task_manager, TaskStatus
+    from ..agent.browser_connector import browser_connector
+    from ..agent.action_validator import action_validator
+    from ..ai.ollama_client import ollama_client
+    from ..audit.logger import audit_logger
+except (ImportError, ValueError):
+    from app.privacy.sanitizer import PrivacySanitizer
+    from app.privacy.detector import PrivacyDetector
+    from app.agent.task_manager import task_manager, TaskStatus
+    from app.agent.browser_connector import browser_connector
+    from app.agent.action_validator import action_validator
+    from app.ai.ollama_client import ollama_client
+    from app.audit.logger import audit_logger
 
 
 router = APIRouter(prefix="/api")
@@ -145,7 +154,7 @@ async def scan_and_sanitize(request: PrivacyScanRequest):
 
 
 @router.post("/tasks")
-async def create_agent_task(payload: CreateTaskRequest, background_tasks: BackgroundTasks):
+async def create_agent_task(payload: CreateTaskRequest):
     """
     Create and kick off an agent task.
     """

@@ -4,7 +4,10 @@ FastAPI Main Application Entry Point
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api.routes import router
+try:
+    from .api.routes import router
+except (ImportError, ValueError):
+    from app.api.routes import router
 
 app = FastAPI(
     title="AITHOS Privacy-Preserving Agent API",
@@ -16,6 +19,10 @@ app = FastAPI(
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5175",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
