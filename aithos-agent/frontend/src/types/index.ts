@@ -19,6 +19,10 @@ export interface HealthStatus {
     endpoint: string;
     selected_model: string;
     installed_models: string[];
+    model_family?: string;
+    is_qwen_detected?: boolean;
+    supported_models?: string[];
+    latency_ms?: number | null;
     last_error?: string | null;
   };
   fakebank: {
@@ -112,12 +116,16 @@ export interface SystemSettings {
   };
   ollama_endpoint: string;
   ollama_model: string;
+  supported_models?: string[];
+  model_family?: string;
   ollama_status: {
     available: boolean;
     status_text: string;
     endpoint: string;
     selected_model: string;
     installed_models: string[];
+    model_family?: string;
+    is_qwen_detected?: boolean;
     last_error?: string | null;
   };
   approved_actions: Record<string, string>;

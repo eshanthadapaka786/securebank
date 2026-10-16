@@ -156,20 +156,19 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   label={health?.ai_model?.available ? 'Available' : 'Unavailable'}
                 />
               </div>
-              <h3 className="text-base font-bold text-slate-900">AI Model (Ollama)</h3>
+              <h3 className="text-base font-bold text-slate-900">Qwen 2.0 AI Engine</h3>
               <p className="text-xs text-slate-500 mt-1">
                 {health?.ai_model?.available
-                  ? `Active model: ${health.ai_model.selected_model}`
+                  ? `Active model: ${health.ai_model.selected_model} (Family: Qwen 2.0)`
                   : 'Local Ollama not detected on :11434'}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
-              <span className="font-semibold text-slate-800">Fallback:</span> Deterministic rule-based
-              execution
+              <span className="font-semibold text-slate-800">Privacy Mode:</span> Zero-PII reasoning over masked tokens
             </div>
           </div>
 
-          {/* 4. FakeBank Target */}
+          {/* 4. SecureBank Target */}
           <div className="clay-card-interactive p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -180,14 +179,14 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   status={
                     health?.fakebank?.connected ? 'CONNECTED' : 'AWAITING_INTEGRATION'
                   }
-                  label={health?.fakebank?.connected ? 'Connected' : 'Awaiting Integration'}
+                  label={health?.fakebank?.connected ? 'Live Connected' : 'Standby / Fallback'}
                 />
               </div>
-              <h3 className="text-base font-bold text-slate-900">FakeBank Demo</h3>
+              <h3 className="text-base font-bold text-slate-900">SecureBank Sandbox</h3>
               <p className="text-xs text-slate-500 mt-1">
                 {health?.fakebank?.connected
-                  ? 'Connected to local banking web target'
-                  : 'Awaiting teammate URL & DOM details'}
+                  ? `Live connected to SecureBank at ${health.fakebank.target_url}`
+                  : 'Inspecting local SecureBank INR dataset (auto-detects port :5173/:5174)'}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">

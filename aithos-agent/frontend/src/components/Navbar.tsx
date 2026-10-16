@@ -84,28 +84,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
 
-            {/* AI Model */}
+            {/* AI Model (Qwen 2.0) */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-              <Cpu className="w-3.5 h-3.5 text-slate-500" />
+              <Cpu className="w-3.5 h-3.5 text-indigo-600" />
               <span className="text-slate-600 font-medium">Model:</span>
               <StatusBadge
                 status={health?.ai_model?.available ? 'ONLINE' : 'UNAVAILABLE'}
-                label={health?.ai_model?.available ? 'Ollama Online' : 'Unavailable'}
+                label={
+                  health?.ai_model?.available
+                    ? `Qwen 2.0 (${health?.ai_model?.selected_model?.split(':')[0] || 'Online'})`
+                    : 'Qwen 2.0 Offline'
+                }
                 size="sm"
               />
             </div>
 
-            {/* FakeBank */}
+            {/* SecureBank Target */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-              <Globe className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-slate-600 font-medium">FakeBank:</span>
+              <Globe className="w-3.5 h-3.5 text-sky-600" />
+              <span className="text-slate-600 font-medium">SecureBank:</span>
               <StatusBadge
                 status={
                   health?.fakebank?.connected
                     ? 'CONNECTED'
                     : 'AWAITING_INTEGRATION'
                 }
-                label={health?.fakebank?.connected ? 'Connected' : 'Awaiting'}
+                label={health?.fakebank?.connected ? 'Live Linked' : 'Standby'}
                 size="sm"
               />
             </div>

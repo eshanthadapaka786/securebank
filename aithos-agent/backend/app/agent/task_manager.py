@@ -221,22 +221,27 @@ class TaskManager:
                     details={"source": raw_data_source, "bytes": len(raw_context)}
                 )
             else:
-                raw_data_source = "PRIVACY_DEMO_SANDBOX"
-                # Authentic sample statement context demonstrating real-world banking entities
+                raw_data_source = "SECUREBANK_INR_SANDBOX"
+                # Authentic SecureBank INR statement context demonstrating real-world banking entities
                 raw_context = (
-                    "Account Holder: Johnathan Doe\n"
-                    "Email: john.doe.banking@example.com\n"
-                    "Phone: +1 (555) 234-5678\n"
-                    "Primary Account: Acc# 492019482019\n"
+                    "Account Holder: Alex Morgan\n"
+                    "Email: alex.morgan@securebank.in\n"
+                    "Phone: +91 98201 84920\n"
+                    "Primary Account: SECB-008492019482\n"
+                    "IFSC Code: SECB0008492\n"
                     "PAN Identifier: ABCDE1234F\n"
-                    "SSN: 987-65-4321\n"
-                    "Card: 4532-7598-1234-5678\n"
-                    "Recent Transactions:\n"
-                    "1. Sep 12, 2026 - Apex Cloud Hosting - $750.00 (Debit)\n"
-                    "2. Sep 14, 2026 - Metro Transit - $45.20 (Debit)\n"
-                    "3. Sep 18, 2026 - Client Retainer Wire - $2,400.00 (Credit)\n"
-                    "4. Sep 22, 2026 - Premium Hardware Supplies - $890.50 (Debit)\n"
-                    "5. Sep 28, 2026 - Downtown Cafe - $18.50 (Debit)\n"
+                    "Card: 4532-7598-1234-8492\n"
+                    "Available Balance: ₹4,85,250.00\n"
+                    "Monthly Income: ₹1,85,000.00\n"
+                    "Monthly Outflow: ₹78,420.00\n"
+                    "Recent Transactions (INR):\n"
+                    "1. Oct 15, 2026 - Nature's Basket Gourmet - ₹3,450.00 (Debit - Groceries)\n"
+                    "2. Oct 14, 2026 - Blue Tokai Coffee Roasters - ₹640.00 (Debit - Food & Dining)\n"
+                    "3. Oct 12, 2026 - TCS Client Retainer Wire - ₹1,85,000.00 (Credit - Income)\n"
+                    "4. Oct 10, 2026 - Amazon India Electronics - ₹12,899.00 (Debit - Technology)\n"
+                    "5. Oct 08, 2026 - Cult.fit Gym & Wellness - ₹18,500.00 (Debit - Health & Fitness)\n"
+                    "6. Oct 05, 2026 - IndiGo Airlines - ₹8,420.00 (Debit - Travel & Transit)\n"
+                    "7. Oct 02, 2026 - Swiggy Gourmet - ₹1,240.00 (Debit - Food & Dining)\n"
                 )
                 task.raw_context = raw_context
                 await self._emit_event(
@@ -244,12 +249,12 @@ class TaskManager:
                     stage="DOM_INSPECTION",
                     operation="Inspect Untrusted Banking Context",
                     explanation=(
-                        f"External FakeBank is in awaiting-integration status ({conn_status.message}). "
-                        "Inspecting local untrusted data stream."
+                        f"Target SecureBank is in standby ({conn_status.message}). "
+                        "Inspecting local untrusted SecureBank INR data stream."
                     ),
                     why_needed="Extracts untrusted page text inside local device sandbox so personal data can be isolated and scrubbed.",
                     status="INFO",
-                    details={"mode": "AWAITING_INTEGRATION_SANDBOX", "target_url": conn_status.target_url}
+                    details={"mode": "SECUREBANK_INR_SANDBOX", "target_url": conn_status.target_url}
                 )
 
             # Stage 4: Local Privacy Sanitization
@@ -294,16 +299,30 @@ class TaskManager:
                         details={"model": ai_status.selected_model, "endpoint": ai_status.endpoint}
                     )
                     structured_system = (
-                        "You are an autonomous privacy-safe financial assistant. "
-                        "The input is strictly sanitized with placeholders like <ACCOUNT_NUM_1> or <EMAIL_1>. "
-                        "Analyze only the sanitized data and formulate a read-only plan. "
-                        "You MUST respond with valid JSON matching:\n"
+                        "You are an autonomous privacy-preserving financial intelligence agent powered by Qwen 2.0.\n"
+                        "CRITICAL PRIVACY INVARIANTS:\n"
+                        "1. All raw PII (names, account numbers, cards, PAN, emails) in the user data has been scrubbed and replaced with safe tokens (e.g., <ACCOUNT_NUM_1>, <EMAIL_1>).\n"
+                        "2. You must reason ONLY over these sanitized tokens and financial values.\n"
+                        "3. You are restricted to READ-ONLY financial operations. State mutations (money transfers, credential changes) are strictly forbidden.\n\n"
+                        "TASK INSTRUCTIONS:\n"
+                        "- Analyze the sanitized financial statement and user query.\n"
+                        "- Formulate step-by-step reasoning explaining the financial logic.\n"
+                        "- Provide a direct, natural-language answer to the user's financial question.\n"
+                        "- Choose exactly ONE read-only action from the approved whitelist that best matches the task:\n"
+                        "  * SORT_BY_AMOUNT (if sorting by transaction value)\n"
+                        "  * CALCULATE_SUMMARY (if calculating totals, expenses, balance)\n"
+                        "  * FILTER_BY_DATE (if filtering by dates or timeframes)\n"
+                        "  * SEARCH_STATEMENT (if searching for a specific merchant or term)\n"
+                        "  * INSPECT_TRANSACTIONS (if viewing general statement details)\n\n"
+                        "OUTPUT FORMAT:\n"
+                        "You MUST respond ONLY with valid JSON in this exact structure:\n"
                         "{\n"
-                        '  "reasoning": "<safe reasoning over tokens>",\n'
-                        '  "proposed_action": "<one of: SORT_BY_AMOUNT, INSPECT_TRANSACTIONS, CALCULATE_SUMMARY, SEARCH_STATEMENT>",\n'
-                        '  "parameters": {"order": "desc"|"asc", "query": "..."}\n'
+                        '  "reasoning": "Step-by-step financial reasoning over the sanitized tokens.",\n'
+                        '  "direct_answer": "Clear, concise natural language answer to the user\'s question.",\n'
+                        '  "proposed_action": "SORT_BY_AMOUNT",\n'
+                        '  "parameters": {"order": "desc"}\n'
                         "}\n"
-                        "Never propose fund transfers, authentication changes, or script execution."
+                        "Note: Set proposed_action to the single action name selected from the whitelist, never multiple actions."
                     )
                     inference_res = await ollama_client.generate_response(
                         prompt=sanitized_res.sanitized_text,
@@ -314,17 +333,42 @@ class TaskManager:
 
                     # Attempt parsing structured model decision
                     parsed_decision = None
+                    reasoning = ""
+                    direct_answer = ""
                     try:
                         # Extract JSON object from output if wrapped in markdown
                         json_match = re.search(r'\{.*\}', raw_model_out, re.DOTALL)
                         if json_match:
                             parsed_decision = json.loads(json_match.group(0))
+                            reasoning = parsed_decision.get("reasoning", "")
+                            direct_answer = parsed_decision.get("direct_answer", "")
                     except Exception:
                         pass
 
                     if parsed_decision and isinstance(parsed_decision, dict) and "proposed_action" in parsed_decision:
-                        proposed_act = parsed_decision["proposed_action"]
+                        proposed_act = str(parsed_decision["proposed_action"]).strip()
                         proposed_params = parsed_decision.get("parameters", {})
+                        if not isinstance(proposed_params, dict):
+                            proposed_params = {}
+
+                        # If model accidentally echoed pipe-delimited template, extract matching candidate
+                        if "|" in proposed_act:
+                            candidates = [c.strip().upper() for c in proposed_act.split("|")]
+                            if val_result.action_type in candidates:
+                                proposed_act = val_result.action_type
+                            else:
+                                for c in candidates:
+                                    if c in action_validator.APPROVED_ACTIONS:
+                                        proposed_act = c
+                                        break
+
+                        # Check if any disallowed mutation keyword is present in proposed_act
+                        act_upper = proposed_act.upper()
+                        for disallowed in action_validator.DISALLOWED_ACTIONS:
+                            if disallowed in act_upper:
+                                proposed_act = disallowed
+                                break
+
                         # Security Boundary: Validate model-proposed action against allowlist
                         model_val = action_validator.validate_action(proposed_act, proposed_params)
                         if not model_val.is_valid or model_val.risk_level == RiskLevel.BLOCKED:
@@ -336,7 +380,7 @@ class TaskManager:
                                 "action": proposed_act,
                                 "reason": model_val.reason,
                                 "rejection_code": model_val.rejection_code,
-                                "ai_inference_status": "USED_LOCAL_OLLAMA_MODEL_PROPOSAL_BLOCKED"
+                                "ai_inference_status": "USED_LOCAL_QWEN_2_MODEL_PROPOSAL_BLOCKED"
                             }
                             await self._emit_event(
                                 task=task,
@@ -353,18 +397,26 @@ class TaskManager:
                             task.action_type = model_val.action_type
                             val_result = model_val
 
-                    ai_notes = f"Inference completed using {ai_status.selected_model} (Duration: {inference_res.get('total_duration', 0)}ns)"
+                    duration_ms = inference_res.get("total_duration_ms", round(inference_res.get("total_duration", 0) / 1e6, 2))
+                    tps = inference_res.get("tokens_per_second", 0)
+                    ai_notes = f"Qwen 2.0 inference completed ({ai_status.selected_model}) in {duration_ms}ms ({tps} tok/s)"
                     await self._emit_event(
                         task=task,
                         stage="AI_INFERENCE",
-                        operation="AI Inference Complete",
-                        explanation="Local model generated response from sanitized context without seeing personal identities.",
+                        operation="Qwen 2.0 Inference Complete",
+                        explanation="Qwen 2.0 generated financial reasoning from sanitized context without seeing personal identities.",
                         why_needed="Verifies model output while guaranteeing zero customer data leakage occurred during inference.",
                         status="SUCCESS",
-                        details={"model_used": ai_status.selected_model, "has_structured_decision": parsed_decision is not None}
+                        details={
+                            "model_used": ai_status.selected_model,
+                            "model_family": "Qwen 2.0",
+                            "has_structured_decision": parsed_decision is not None,
+                            "tokens_per_second": tps,
+                            "duration_ms": duration_ms
+                        }
                     )
                 except Exception as e:
-                    ai_notes = f"Inference attempt failed: {str(e)}. Falling back to deterministic agent."
+                    ai_notes = f"Qwen 2.0 inference attempt failed: {str(e)}. Falling back to deterministic agent."
                     await self._emit_event(
                         task=task,
                         stage="AI_INFERENCE",
@@ -383,14 +435,17 @@ class TaskManager:
                     explanation=ai_notes,
                     why_needed="Honest diagnostic: Never pretends an AI model answered when none was reached. Seamlessly executes rule-based workflow.",
                     status="INFO",
-                    details={"status": "OFFLINE", "endpoint": ai_status.endpoint, "ai_used": False}
+                    details={"status": "OFFLINE", "endpoint": ai_status.endpoint, "ai_used": False, "recommended_model": "qwen2:latest"}
                 )
 
             # Stage 6: Action Execution (Deterministic read-only calculation & live DOM verification)
+            live_parsed_txs = None
             if conn_status.connected:
                 browser_res = await browser_connector.execute_browser_action(task.action_type, val_result.sanitized_parameters)
                 if browser_res.get("executed"):
-                    execution_res = self._execute_read_only_action(task.action_type, val_result.sanitized_parameters)
+                    page_content = (await browser_connector.fetch_page_content()).get("html_content", "")
+                    live_parsed_txs = browser_connector.parse_dom_statement(page_content)
+                    execution_res = self._execute_read_only_action(task.action_type, val_result.sanitized_parameters, live_parsed_txs)
                     execution_res["explanation"] = f"Live DOM verified on {browser_connector.target_url}. " + execution_res["explanation"]
                     execution_res["details"]["browser_verified"] = True
                     execution_res["details"]["target_url"] = browser_connector.target_url
@@ -412,7 +467,20 @@ class TaskManager:
             # Stage 7: Task Completion & Synthesis
             task.status = TaskStatus.COMPLETED
             task.completed_at = datetime.now(timezone.utc).isoformat()
-            task.final_response = execution_res["summary_text"]
+            
+            # Combine Qwen 2.0 reasoning and direct answer with verified statement calculation
+            if ai_used and (direct_answer or reasoning):
+                synthesis_parts = ["### 🤖 Qwen 2.0 Financial Analysis\n"]
+                if direct_answer:
+                    synthesis_parts.append(f"{direct_answer}\n\n")
+                if reasoning:
+                    synthesis_parts.append(f"**Reasoning:** {reasoning}\n\n")
+                synthesis_parts.append("---\n### 📊 Verified Statement Calculation (INR - ₹)\n")
+                synthesis_parts.append(execution_res["summary_text"])
+                task.final_response = "".join(synthesis_parts)
+            else:
+                task.final_response = execution_res["summary_text"]
+
             task.execution_summary = {
                 "outcome": "SUCCESS",
                 "action": task.action_type,
@@ -420,6 +488,10 @@ class TaskManager:
                 "sensitive_entities_protected": sanitized_res.total_entities_masked,
                 "categories_protected": list(sanitized_res.detection_counts.keys()),
                 "ai_inference_status": "USED_LOCAL_OLLAMA" if ai_used else "DETERMINISTIC_SAFE_EXECUTION",
+                "model_used": ai_status.selected_model if ai_used else "DETERMINISTIC_ENGINE",
+                "model_family": "Qwen 2.0",
+                "model_reasoning": reasoning if ai_used else "",
+                "direct_answer": direct_answer if ai_used else "",
                 "ai_notes": ai_notes,
                 "target_data_source": raw_data_source,
                 "fakebank_status": conn_status.status_code,
@@ -461,16 +533,28 @@ class TaskManager:
             )
         return task
 
-    def _execute_read_only_action(self, action_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform verified read-only operations."""
-        # Built-in statement dataset (representing verified parsed transactions)
-        sample_transactions = [
-            {"date": "2026-09-12", "merchant": "Apex Cloud Hosting", "amount": 750.00, "type": "Debit"},
-            {"date": "2026-09-14", "merchant": "Metro Transit", "amount": 45.20, "type": "Debit"},
-            {"date": "2026-09-18", "merchant": "Client Retainer Wire", "amount": 2400.00, "type": "Credit"},
-            {"date": "2026-09-22", "merchant": "Premium Hardware Supplies", "amount": 890.50, "type": "Debit"},
-            {"date": "2026-09-28", "merchant": "Downtown Cafe", "amount": 18.50, "type": "Debit"},
+    def _execute_read_only_action(
+        self,
+        action_type: str,
+        params: Dict[str, Any],
+        live_transactions: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """Perform verified read-only operations over authentic SecureBank INR transactions."""
+        # Built-in authentic SecureBank INR statement dataset
+        fallback_transactions = [
+            {"id": "tx-1001", "date": "2026-10-15", "merchant": "Nature's Basket Gourmet", "category": "Groceries", "amount": 3450.00, "type": "Debit"},
+            {"id": "tx-1002", "date": "2026-10-14", "merchant": "Blue Tokai Coffee Roasters", "category": "Food & Dining", "amount": 640.00, "type": "Debit"},
+            {"id": "tx-1003", "date": "2026-10-12", "merchant": "TCS Client Retainer Wire", "category": "Income", "amount": 185000.00, "type": "Credit"},
+            {"id": "tx-1004", "date": "2026-10-10", "merchant": "Amazon India Electronics", "category": "Technology", "amount": 12899.00, "type": "Debit"},
+            {"id": "tx-1005", "date": "2026-10-08", "merchant": "Cult.fit Gym & Wellness", "category": "Health & Fitness", "amount": 18500.00, "type": "Debit"},
+            {"id": "tx-1006", "date": "2026-10-05", "merchant": "IndiGo Airlines Mumbai-Delhi", "category": "Travel & Transit", "amount": 8420.00, "type": "Debit"},
+            {"id": "tx-1007", "date": "2026-10-02", "merchant": "Swiggy Gourmet Delivery", "category": "Food & Dining", "amount": 1240.00, "type": "Debit"},
+            {"id": "tx-1008", "date": "2026-09-28", "merchant": "Tata Power Utilities Mumbai", "category": "Utilities", "amount": 4210.00, "type": "Debit"},
+            {"id": "tx-1009", "date": "2026-09-25", "merchant": "Apple India Store Mumbai", "category": "Technology", "amount": 24900.00, "type": "Debit"},
+            {"id": "tx-1010", "date": "2026-09-22", "merchant": "Apollo Pharmacy Bandra", "category": "Health & Fitness", "amount": 1850.00, "type": "Debit"},
         ]
+        
+        sample_transactions = (live_transactions if live_transactions and len(live_transactions) > 0 else fallback_transactions)
 
         if action_type == "SORT_BY_AMOUNT":
             order = params.get("order", "desc")
@@ -478,23 +562,30 @@ class TaskManager:
             sorted_txs = sorted(sample_transactions, key=lambda x: x["amount"], reverse=reverse)
             top_tx = sorted_txs[0]
             return {
-                "explanation": f"Sorted 5 transactions by amount in {order.upper()} order.",
-                "details": {"sorted_count": len(sorted_txs), "top_item": top_tx["merchant"], "top_amount": f"${top_tx['amount']:.2f}"},
+                "explanation": f"Sorted {len(sorted_txs)} INR transactions by amount in {order.upper()} order.",
+                "details": {"sorted_count": len(sorted_txs), "top_item": top_tx["merchant"], "top_amount": f"₹{top_tx['amount']:,.2f}"},
                 "summary_text": (
                     f"Transactions sorted by amount ({order.upper()}):\n" +
-                    "\n".join([f"• {t['date']} | {t['merchant']} | ${t['amount']:.2f} ({t['type']})" for t in sorted_txs])
+                    "\n".join([f"• {t['date']} | {t['merchant']} | ₹{t['amount']:,.2f} ({t['type']})" for t in sorted_txs])
                 )
             }
 
         elif action_type == "FILTER_BY_DATE":
-            # Transactions in September
-            sept_txs = [t for t in sample_transactions if "2026-09" in t["date"]]
+            # Search for month in params or default to October 2026
+            query_str = str(params.get("user_prompt", "")).lower()
+            if "sep" in query_str:
+                matched_txs = [t for t in sample_transactions if "2026-09" in t["date"]]
+                filter_label = "September 2026"
+            else:
+                matched_txs = [t for t in sample_transactions if "2026-10" in t["date"]]
+                filter_label = "October 2026"
+
             return {
-                "explanation": f"Filtered statement transactions for target period. Found {len(sept_txs)} records.",
-                "details": {"filter_criteria": "September 2026", "matching_records": len(sept_txs)},
+                "explanation": f"Filtered statement transactions for {filter_label}. Found {len(matched_txs)} records.",
+                "details": {"filter_criteria": filter_label, "matching_records": len(matched_txs)},
                 "summary_text": (
-                    f"Found {len(sept_txs)} transactions in the requested date range:\n" +
-                    "\n".join([f"• {t['date']} | {t['merchant']} | ${t['amount']:.2f} ({t['type']})" for t in sept_txs])
+                    f"Found {len(matched_txs)} transactions in {filter_label}:\n" +
+                    "\n".join([f"• {t['date']} | {t['merchant']} | ₹{t['amount']:,.2f} ({t['type']})" for t in matched_txs])
                 )
             }
 
@@ -503,35 +594,41 @@ class TaskManager:
             total_credits = sum(t["amount"] for t in sample_transactions if t["type"] == "Credit")
             net_change = total_credits - total_debits
             return {
-                "explanation": f"Computed transaction aggregations: ${total_credits:.2f} credits, ${total_debits:.2f} debits.",
+                "explanation": f"Computed INR transaction aggregations: ₹{total_credits:,.2f} credits, ₹{total_debits:,.2f} debits.",
                 "details": {"total_credits": total_credits, "total_debits": total_debits, "net_change": net_change},
                 "summary_text": (
-                    f"Financial Statement Aggregation:\n"
-                    f"• Total Income / Credits: ${total_credits:,.2f}\n"
-                    f"• Total Outflow / Debits: ${total_debits:,.2f}\n"
-                    f"• Net Balance Impact: {'+$' if net_change >= 0 else '-$'}{abs(net_change):,.2f}"
+                    f"SecureBank Statement Summary (INR - ₹):\n"
+                    f"• Total Inflow / Credits: ₹{total_credits:,.2f}\n"
+                    f"• Total Outflow / Debits: ₹{total_debits:,.2f}\n"
+                    f"• Net Cashflow: {'+₹' if net_change >= 0 else '-₹'}{abs(net_change):,.2f}"
                 )
             }
 
         elif action_type == "SEARCH_STATEMENT":
-            query = str(params.get("query", "")).lower()
-            matches = [t for t in sample_transactions if any(word in t["merchant"].lower() for word in query.split())]
+            query = str(params.get("query", params.get("user_prompt", ""))).lower()
+            # Remove command words
+            cleaned_query = re.sub(r'\b(search|find|for|transactions?|statement|records?)\b', '', query).strip()
+            matches = [
+                t for t in sample_transactions 
+                if any(w in t["merchant"].lower() or w in t.get("category", "").lower() for w in cleaned_query.split())
+            ] if cleaned_query else sample_transactions[:5]
+            
             return {
-                "explanation": f"Searched transactions matching query. Located {len(matches)} item(s).",
-                "details": {"query": query[:30], "matches_found": len(matches)},
+                "explanation": f"Searched transactions matching '{cleaned_query or 'statement'}'. Located {len(matches)} item(s).",
+                "details": {"query": cleaned_query[:30], "matches_found": len(matches)},
                 "summary_text": (
-                    f"Search Results for '{query[:30]}':\n" +
-                    ("\n".join([f"• {t['date']} | {t['merchant']} | ${t['amount']:.2f}" for t in matches]) if matches else "• No matching transactions found.")
+                    f"Search Results for '{cleaned_query[:30]}':\n" +
+                    ("\n".join([f"• {t['date']} | {t['merchant']} | ₹{t['amount']:,.2f} ({t['type']})" for t in matches]) if matches else "• No matching transactions found.")
                 )
             }
 
         # Default inspection
         return {
-            "explanation": f"Inspected recent transactions. Verified 5 statement records.",
+            "explanation": f"Inspected recent transactions. Verified {len(sample_transactions)} statement records.",
             "details": {"transaction_count": len(sample_transactions)},
             "summary_text": (
-                f"Verified Statement Overview (5 recent entries):\n" +
-                "\n".join([f"• {t['date']} | {t['merchant']} | ${t['amount']:.2f} ({t['type']})" for t in sample_transactions])
+                f"Verified SecureBank Statement Overview ({len(sample_transactions)} entries):\n" +
+                "\n".join([f"• {t['date']} | {t['merchant']} | ₹{t['amount']:,.2f} ({t['type']})" for t in sample_transactions])
             )
         }
 

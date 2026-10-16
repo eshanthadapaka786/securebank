@@ -10,6 +10,7 @@ import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
 import Profile from './pages/Profile';
 import Security from './pages/Security';
+import AIAssistant from './pages/AIAssistant';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -105,6 +106,10 @@ function App() {
 
           {activeTab === 'security' && (
             <Security userProfile={userProfile} />
+          )}
+
+          {activeTab === 'ai-assistant' && (
+            <AIAssistant userProfile={userProfile} />
           )}
         </main>
       </div>

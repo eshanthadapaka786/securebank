@@ -42,7 +42,9 @@ def _is_port_open(url: str, timeout: float = 0.15) -> bool:
 class BrowserConnector:
     """Manages connection and DOM inspection for the external FakeBank target."""
 
-    def __init__(self, target_url: str = "http://localhost:3000"):
+    CANDIDATE_PORTS = ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]
+
+    def __init__(self, target_url: str = "http://localhost:5173"):
         self.target_url = target_url
         self._cached_status: Optional[BrowserConnectionStatus] = None
         self._cache_time: float = 0.0
@@ -54,9 +56,10 @@ class BrowserConnector:
 
     async def check_connection(self, force_refresh: bool = False) -> BrowserConnectionStatus:
         """
-        Check if the target application (FakeBank) is reachable.
+        Check if the target application (SecureBank / FakeBank) is reachable.
         Honest probe: does not fabricate a connected state.
         Uses fast TCP pre-probing to respond in < 25ms.
+        Auto-discovers running port among candidate ports if primary is down.
         """
         now = time.time()
         if not force_refresh and self._cached_status and (now - self._cache_time < 2.5):
@@ -78,20 +81,30 @@ class BrowserConnector:
             self._cache_time = now
             return status
 
-        # Step 1: Rapid socket probe
+        # Step 1: Rapid socket probe on current target URL
         if not _is_port_open(self.target_url, timeout=0.15):
-            status = BrowserConnectionStatus(
-                connected=False,
-                status_code="AWAITING_INTEGRATION",
-                target_url=self.target_url,
-                message=f"Awaiting FakeBank integration: service not reachable at {self.target_url}",
-                last_checked=now_iso,
-                latency_ms=(time.time() - t0) * 1000,
-                details={"hint": "Start FakeBank development server or update URL in Settings"}
-            )
-            self._cached_status = status
-            self._cache_time = now
-            return status
+            # Check candidate fallback ports if primary was default
+            discovered_url = None
+            for candidate in self.CANDIDATE_PORTS:
+                if candidate != self.target_url and _is_port_open(candidate, timeout=0.10):
+                    discovered_url = candidate
+                    break
+
+            if discovered_url:
+                self.target_url = discovered_url
+            else:
+                status = BrowserConnectionStatus(
+                    connected=False,
+                    status_code="AWAITING_INTEGRATION",
+                    target_url=self.target_url,
+                    message=f"Awaiting SecureBank integration: service not reachable at {self.target_url}",
+                    last_checked=now_iso,
+                    latency_ms=(time.time() - t0) * 1000,
+                    details={"hint": "Start SecureBank dev server (`npm run dev`) or update URL in Settings"}
+                )
+                self._cached_status = status
+                self._cache_time = now
+                return status
 
         # Step 2: HTTP probe if port is active
         try:
@@ -175,8 +188,9 @@ class BrowserConnector:
 
     def parse_dom_statement(self, html_content: str) -> List[Dict[str, Any]]:
         """
-        Extract structured transaction rows from HTML conforming to FakeBank DOM specification.
-        Uses resilient regex/string parsing over table cells.
+        Extract structured transaction rows from HTML conforming to SecureBank / FakeBank DOM specification.
+        Uses resilient regex/string parsing over table cells and handles both 7-column SecureBank
+        and standard 3/4-column statement layouts.
         """
         import re
         transactions: List[Dict[str, Any]] = []
@@ -191,17 +205,36 @@ class BrowserConnector:
             if len(cells) >= 3:
                 # Strip HTML tags inside cells
                 clean_cells = [re.sub(r'<[^>]+>', '', c).strip() for c in cells]
-                # Try parsing date, merchant, amount
-                date_val = clean_cells[0]
-                merchant_val = clean_cells[1] if len(clean_cells) > 1 else "Unknown"
-                raw_amt = clean_cells[2] if len(clean_cells) > 2 else "0"
-                # Extract numeric amount
-                amt_match = re.search(r'[\d,]+(?:\.\d{1,2})?', raw_amt)
-                amount = float(amt_match.group(0).replace(',', '')) if amt_match else 0.0
-                tx_type = clean_cells[3] if len(clean_cells) > 3 else ("Debit" if "debit" in raw_amt.lower() or "-" in raw_amt else "Credit")
+                
+                if len(clean_cells) >= 6:
+                    # SecureBank layout: [ID, Date, Merchant, Category, Vehicle, Type, Amount]
+                    tx_id = clean_cells[0]
+                    date_val = clean_cells[1]
+                    merchant_val = clean_cells[2]
+                    category_val = clean_cells[3]
+                    tx_type = clean_cells[5] if len(clean_cells) > 5 else "Debit"
+                    raw_amt = clean_cells[-1]
+                else:
+                    # Standard 3/4 column layout: [Date, Merchant, Amount, (Type)]
+                    tx_id = f"tx-{len(transactions) + 1001}"
+                    date_val = clean_cells[0]
+                    merchant_val = clean_cells[1] if len(clean_cells) > 1 else "Unknown"
+                    raw_amt = clean_cells[2] if len(clean_cells) > 2 else "0"
+                    category_val = "General"
+                    tx_type = clean_cells[3] if len(clean_cells) > 3 else ("Debit" if "debit" in raw_amt.lower() or "-" in raw_amt else "Credit")
+
+                # Extract numeric amount (supports INR ₹ and USD $)
+                clean_amt_str = re.sub(r'[^\d.]', '', raw_amt.replace(',', ''))
+                try:
+                    amount = float(clean_amt_str) if clean_amt_str else 0.0
+                except ValueError:
+                    amount = 0.0
+
                 transactions.append({
+                    "id": tx_id,
                     "date": date_val,
                     "merchant": merchant_val,
+                    "category": category_val,
                     "amount": amount,
                     "type": tx_type
                 })

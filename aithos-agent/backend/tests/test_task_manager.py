@@ -33,6 +33,7 @@ async def test_read_only_task_execution():
     # Check privacy summary: no raw data leaked
     assert completed_task.privacy_summary.get("total_entities_masked", 0) > 0
     assert "john.doe.banking@example.com" not in completed_task.sanitized_prompt
+    assert "alex.morgan@securebank.in" not in completed_task.sanitized_prompt
     assert "<EMAIL_1>" in completed_task.sanitized_prompt
 
 

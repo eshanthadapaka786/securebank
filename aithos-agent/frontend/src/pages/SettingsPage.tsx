@@ -12,7 +12,7 @@ import {
   ExternalLink,
   Code,
 } from 'lucide-react';
-import { getSettings, updateSettings } from '../lib/api';
+import { getSettings, updateSettings, pullModel } from '../lib/api';
 import { SystemSettings } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 
@@ -26,6 +26,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onRefreshHealth }) =
   const [ollamaEndpoint, setOllamaEndpoint] = useState<string>('');
   const [ollamaModel, setOllamaModel] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isPulling, setIsPulling] = useState<boolean>(false);
+  const [pullInput, setPullInput] = useState<string>('qwen2:latest');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const fetchSettings = async () => {
@@ -62,6 +64,36 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onRefreshHealth }) =
       setIsSaving(false);
     }
   };
+
+  const handlePullModel = async (modelToPull?: string) => {
+    const target = modelToPull || pullInput;
+    if (!target.trim()) return;
+    setIsPulling(true);
+    setMessage(null);
+    try {
+      const res = await pullModel(target);
+      if (res.status === 'SUCCESS') {
+        setMessage({ text: `Successfully pulled ${target}! Model is now available and active.`, type: 'success' });
+        setOllamaModel(target);
+        await fetchSettings();
+        onRefreshHealth();
+      } else {
+        setMessage({ text: res.error || `Failed to pull ${target}`, type: 'error' });
+      }
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Failed to pull model', type: 'error' });
+    } finally {
+      setIsPulling(false);
+    }
+  };
+
+  const qwenPresets = [
+    { id: 'qwen2:latest', label: 'Qwen 2.0 (latest)', desc: 'Recommended default' },
+    { id: 'qwen2:1.5b', label: 'Qwen 2 (1.5B)', desc: 'Fast & accurate' },
+    { id: 'qwen2:0.5b', label: 'Qwen 2 (0.5B)', desc: 'Ultra-fast / lightweight' },
+    { id: 'qwen2:7b', label: 'Qwen 2 (7B)', desc: 'High capability' },
+    { id: 'qwen2.5:latest', label: 'Qwen 2.5', desc: 'Latest generation' },
+  ];
 
   return (
     <div className="space-y-8 animate-fadeIn max-w-5xl">
@@ -142,25 +174,66 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onRefreshHealth }) =
         </div>
       </div>
 
-      {/* 2. AI Inference Engine (Ollama) */}
-      <div className="clay-card p-6 space-y-4">
+      {/* 2. AI Inference Engine (Qwen 2.0 via Ollama) */}
+      <div className="clay-card p-6 space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center text-purple-800">
-              <Cpu className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-800 font-bold text-xs">
+              Q2
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Local AI Inference (Ollama)</h2>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                Local AI Inference: Qwen 2.0 (Ollama)
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                  Privacy Sandbox
+                </span>
+              </h2>
               <p className="text-xs text-slate-500">
-                Local LLM connection for reasoning over sanitized context.
+                Alibaba Cloud Qwen 2.0 LLM for structured financial reasoning over sanitized context.
               </p>
             </div>
           </div>
 
           <StatusBadge
             status={settings?.ollama_status?.available ? 'ONLINE' : 'UNAVAILABLE'}
-            label={settings?.ollama_status?.available ? 'Ollama Online' : 'Ollama Offline'}
+            label={settings?.ollama_status?.available ? 'Qwen 2.0 / Ollama Online' : 'Ollama Offline'}
           />
+        </div>
+
+        {/* Quick Model Selector Presets */}
+        <div>
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            Select Qwen 2.0 Model Preset
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {qwenPresets.map((preset) => {
+              const isInstalled = settings?.ollama_status?.installed_models?.some((m) =>
+                m.toLowerCase().startsWith(preset.id.toLowerCase())
+              );
+              const isSelected = ollamaModel.toLowerCase() === preset.id.toLowerCase();
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setOllamaModel(preset.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-300'
+                      : isInstalled
+                      ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  <span>{preset.label}</span>
+                  {isInstalled && (
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-200/60 text-indigo-900">
+                      Installed
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -172,32 +245,76 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onRefreshHealth }) =
               type="url"
               value={ollamaEndpoint}
               onChange={(e) => setOllamaEndpoint(e.target.value)}
-              placeholder="http://localhost:11434"
+              placeholder="http://127.0.0.1:11434"
               className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white"
             />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Target Model Name
+              Active Model Name
             </label>
             <input
               type="text"
               value={ollamaModel}
               onChange={(e) => setOllamaModel(e.target.value)}
-              placeholder="llama3:latest"
+              placeholder="qwen2:latest"
               className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white"
             />
           </div>
         </div>
 
-        <div className="text-xs text-slate-500 flex items-center justify-between">
-          <span>{settings?.ollama_status?.status_text || 'Checking Ollama daemon...'}</span>
-          {settings?.ollama_status?.installed_models && (
-            <span className="font-semibold text-slate-700">
-              Installed Models: {settings.ollama_status.installed_models.length}
+        {/* Installed Models Tags */}
+        {settings?.ollama_status?.installed_models && settings.ollama_status.installed_models.length > 0 && (
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[11px] font-bold text-slate-700 block mb-1.5">
+              Detected Installed Models on Local Ollama ({settings.ollama_status.installed_models.length}):
             </span>
-          )}
+            <div className="flex flex-wrap gap-1.5">
+              {settings.ollama_status.installed_models.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setOllamaModel(m)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
+                    ollamaModel === m
+                      ? 'bg-indigo-600 text-white font-bold'
+                      : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-200'
+                  }`}
+                  title="Click to select this model"
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pull Model Helper */}
+        <div className="flex items-center gap-2 pt-1 flex-wrap">
+          <input
+            type="text"
+            value={pullInput}
+            onChange={(e) => setPullInput(e.target.value)}
+            placeholder="e.g. qwen2:latest or qwen2:7b"
+            className="flex-1 min-w-[200px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+          <button
+            type="button"
+            disabled={isPulling}
+            onClick={() => handlePullModel()}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+          >
+            {isPulling ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            {isPulling ? 'Pulling Model...' : 'Pull Model via Ollama'}
+          </button>
+        </div>
+
+        <div className="text-xs text-slate-500 flex items-center justify-between flex-wrap gap-2">
+          <span>{settings?.ollama_status?.status_text || 'Checking Ollama daemon...'}</span>
+          <span className="font-semibold text-indigo-700">
+            Model Family: Qwen 2.0 (Zero-PII JSON Mode)
+          </span>
         </div>
       </div>
 

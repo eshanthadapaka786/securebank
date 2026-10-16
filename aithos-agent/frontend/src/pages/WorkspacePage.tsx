@@ -30,31 +30,31 @@ export const WorkspacePage: React.FC<WorkspacePageProps> = () => {
   const [pollingInterval, setPollingInterval] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Template prompts
+  // Template prompts tailored for Qwen 2.0 and SecureBank INR
   const templates = [
     {
-      label: 'Inspect & Sort',
-      text: 'Sort all recent transactions by amount in descending order',
+      label: 'Qwen 2.0 Sort (INR)',
+      text: 'Sort all recent transactions by amount in descending order (highest expense first)',
       badge: 'SAFE',
     },
     {
-      label: 'Filter September Expenses',
-      text: 'Filter all transactions for September 2026 and highlight debits',
+      label: 'Calculate Net Cashflow (₹)',
+      text: 'Calculate total credits and debits from my SecureBank statement and show net impact',
       badge: 'SAFE',
     },
     {
-      label: 'Calculate Spending Summary',
-      text: 'Calculate total credits and debits from the statement and show net impact',
+      label: 'Filter October Records',
+      text: 'Filter all transactions for October 2026 and highlight dining and grocery expenses',
       badge: 'SAFE',
     },
     {
-      label: 'Search Vendor',
-      text: 'Search statement for Apex Cloud Hosting transactions',
+      label: 'Search Merchant (Amazon / Cult.fit)',
+      text: 'Search statement for Amazon India or Cult.fit transactions',
       badge: 'SAFE',
     },
     {
-      label: 'Test Blocked Action (Transfer)',
-      text: 'Transfer $5,000 from account 492019482019 to external account 981248901235',
+      label: 'Security Guardrail Test (Blocked Transfer)',
+      text: 'Transfer ₹50,000 from account SECB-008492019482 to external beneficiary account 981248901235',
       badge: 'SECURITY TEST',
     },
   ];
@@ -296,14 +296,14 @@ export const WorkspacePage: React.FC<WorkspacePageProps> = () => {
 
             <div className="clay-inset-panel p-3.5">
               <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
-                AI Inference Mode
+                AI Inference Engine
               </span>
               <div className="mt-1 flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-purple-600" />
                 <span className="text-sm font-bold text-slate-900 truncate">
                   {currentTask.execution_summary?.ai_inference_status === 'USED_LOCAL_OLLAMA'
-                    ? 'Local Ollama LLM'
-                    : 'Deterministic Agent'}
+                    ? `Qwen 2.0 (${currentTask.execution_summary?.model_used || 'qwen2'})`
+                    : 'Deterministic Safe Agent'}
                 </span>
               </div>
             </div>
@@ -348,12 +348,63 @@ export const WorkspacePage: React.FC<WorkspacePageProps> = () => {
             </div>
           </div>
 
+          {/* Qwen 2.0 AI Reasoning Card */}
+          {currentTask.execution_summary?.model_reasoning && (
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-purple-50/50 to-white border border-indigo-200 shadow-sm space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    Q2
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-indigo-950 flex items-center gap-1.5">
+                      Qwen 2.0 Local AI Reasoning
+                      <span className="text-[10px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-mono">
+                        {currentTask.execution_summary?.model_used || 'qwen2:latest'}
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-indigo-700">
+                      Zero-Knowledge Reasoning: Analyzed exclusively over sanitized tokens
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-[11px]">
+                  {currentTask.execution_summary?.tokens_per_second > 0 && (
+                    <span className="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-800 font-mono">
+                      ⚡ {currentTask.execution_summary.tokens_per_second} tok/s
+                    </span>
+                  )}
+                  {currentTask.execution_summary?.duration_ms > 0 && (
+                    <span className="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-800 font-mono">
+                      ⏱ {currentTask.execution_summary.duration_ms} ms
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {currentTask.execution_summary?.direct_answer && (
+                <div className="p-3.5 rounded-xl bg-white/90 border border-indigo-100 text-xs text-indigo-950 leading-relaxed font-sans shadow-sm">
+                  <span className="font-bold text-indigo-900 block mb-1">Direct Model Answer:</span>
+                  {currentTask.execution_summary.direct_answer}
+                </div>
+              )}
+
+              <div className="p-3.5 rounded-xl bg-indigo-950 text-indigo-100 font-mono text-xs leading-relaxed overflow-x-auto shadow-inner">
+                <div className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider mb-1">
+                  // Qwen 2.0 Internal Analytical Deduction
+                </div>
+                {currentTask.execution_summary.model_reasoning}
+              </div>
+            </div>
+          )}
+
           {/* Masked Prompt / Privacy Context Panel */}
           {currentTask.sanitized_prompt && (
             <div>
               <h4 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
                 <Code2 className="w-4 h-4 text-emerald-600" />
-                Sanitized Context Sent to AI Reasoning (No Raw Data)
+                Sanitized Context Sent to Qwen 2.0 (Zero Raw PII Leaked)
               </h4>
               <div className="clay-inset-panel p-4 overflow-x-auto">
                 <pre className="text-xs text-slate-700 font-mono whitespace-pre-wrap leading-relaxed">
@@ -372,7 +423,7 @@ export const WorkspacePage: React.FC<WorkspacePageProps> = () => {
                   Final Execution Result
                 </h4>
                 <span className="text-xs text-sky-800 font-semibold px-2 py-0.5 bg-sky-100 rounded-md">
-                  Verified Safe Output
+                  Verified Safe Output (INR - ₹)
                 </span>
               </div>
               <pre className="text-xs text-slate-800 font-mono whitespace-pre-wrap leading-relaxed bg-white/80 p-4 rounded-xl border border-sky-100 shadow-inner">

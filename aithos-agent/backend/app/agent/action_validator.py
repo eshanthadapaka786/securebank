@@ -117,7 +117,7 @@ class ActionValidator:
             sanitized_parameters=sanitized
         )
 
-    def extract_intent_from_prompt(self, user_prompt: str) -> Tuple_Validation:
+    def extract_intent_from_prompt(self, user_prompt: str) -> ValidationResult:
         """
         Analyze user's task prompt to determine the intended action and check safety early.
         """

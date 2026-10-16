@@ -112,3 +112,14 @@ export function subscribeToEvents(
     sse.close();
   };
 }
+
+export async function pullModel(modelName: string): Promise<{ status: string; model: string; message?: string; error?: string }> {
+  const res = await fetch(`${API_BASE}/ai/pull`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model_name: modelName }),
+  });
+  if (!res.ok) throw new Error(`Failed to pull model: ${res.statusText}`);
+  return res.json();
+}
+

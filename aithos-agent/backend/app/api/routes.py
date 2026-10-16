@@ -51,6 +51,10 @@ class CreateTaskRequest(BaseModel):
     prompt: str = Field(..., min_length=3, description="User's task instruction")
 
 
+class PullModelRequest(BaseModel):
+    model_name: str = Field("qwen2:latest", description="Name of model to pull via Ollama")
+
+
 class SettingsUpdateRequest(BaseModel):
     fakebank_url: Optional[str] = None
     ollama_endpoint: Optional[str] = None
@@ -94,6 +98,10 @@ async def get_system_health():
             "endpoint": ai_status.endpoint,
             "selected_model": ai_status.selected_model,
             "installed_models": ai_status.installed_models,
+            "model_family": ai_status.model_family,
+            "is_qwen_detected": ai_status.is_qwen_detected,
+            "supported_models": ai_status.supported_models,
+            "latency_ms": ai_status.latency_ms,
             "last_error": ai_status.last_error,
         },
         fakebank={
@@ -242,6 +250,8 @@ async def get_settings():
         "ollama_endpoint": ollama_client.endpoint,
         "ollama_model": ollama_client.selected_model,
         "ollama_status": asdict(ai_status),
+        "supported_models": ai_status.supported_models,
+        "model_family": ai_status.model_family,
         "approved_actions": action_validator.APPROVED_ACTIONS,
         "disallowed_actions": action_validator.DISALLOWED_ACTIONS,
     }
@@ -270,3 +280,11 @@ async def update_settings(payload: SettingsUpdateRequest):
     )
 
     return await get_settings()
+
+
+@router.post("/ai/pull")
+async def pull_model_endpoint(payload: PullModelRequest):
+    """Trigger Ollama to pull a model (e.g. qwen2:latest, qwen2:1.5b)."""
+    res = await ollama_client.pull_model(payload.model_name)
+    return res
+
