@@ -1,157 +1,47 @@
-# SecureBank | AITHOS AI Privacy-Agent Sandbox
+# AITHOS – AI Privacy Agent
 
-A banking dashboard built with **React 19 + Vite** for the **AITHOS AI Privacy-Agent Hackathon**.
+AITHOS is a privacy-focused AI agent that enables secure browser automation while protecting personally identifiable information (PII). It detects and masks sensitive data before AI processing and blocks unsafe actions.
 
-Featuring an **enterprise blue-and-white claymorphism fintech UI**, native **Indian Rupee (INR - ₹)** currency formatting, realistic synthetic transaction datasets, stable DOM selectors for agent automation, and strict privacy invariants ensuring zero sensitive credential leakage.
+## Architecture
 
----
+**1. SecureBank Sandbox**
+A React 19 + Vite banking simulator featuring INR transactions, dashboards, wallets, profiles, and security settings. It uses synthetic banking data for safe demonstrations.
 
-## 🎨 Design Philosophy: Blue & White Claymorphism
+**2. AITHOS Backend**
+Built with Python and FastAPI, it provides:
 
-- **Palette**: Soft pale blue canvas (`#f0f4fa`) with subtle radial gradients, pure porcelain white raised cards (`#ffffff`), and rich FinTech cobalt blue (`#1852db` / `#091e42`).
-- **Claymorphic 3D Elevation**: Dual soft drop-shadows combined with inner reflection highlights create tactile, elevated 3D cards without harsh borders.
-- **Enterprise Authenticity**: Completely redesigned corporate NetBanking login experience with custom vector SVG icons, segmented NetBanking vs Evaluator 1-Click modes, and industry trust seals (256-bit SSL, AITHOS Privacy Guardrail).
-- **Subtle Inset Inputs**: Tactile input wells and selects with dual inset shadows.
-- **Typography**: Clean, geometric typography powered by Google Fonts *Plus Jakarta Sans*.
+* **PII Detection:** Identifies emails, phone numbers, PAN, bank accounts, passwords, PINs, and credit cards.
+* **Data Sanitization:** Replaces sensitive values with placeholders and generates SHA-256 checksums.
+* **Action Security:** Allows read-only operations while blocking money transfers, password changes, and script execution.
+* **Local AI:** Uses Qwen 2.0 through Ollama for private reasoning.
+* **Monitoring:** REST APIs, SSE streaming, and privacy-safe audit logs.
 
----
+**3. Observability Dashboard**
+A React + TypeScript dashboard for real-time monitoring, PII scanning, execution timelines, audit logs, and AI model management.
 
-## 🚀 Getting Started
+## Workflow
 
-### 1. Installation
+1. User submits a browser task.
+2. AITHOS validates the requested action.
+3. Relevant browser data is inspected for PII.
+4. Sensitive values are replaced with placeholders.
+5. Sanitized data is processed by the local Qwen model.
+6. Proposed actions are validated before execution.
+7. Results and security events are displayed.
 
-Ensure Node.js 18+ is installed:
+## Tech Stack
 
-```bash
-npm install
-```
+* Frontend: React, TypeScript, Vite, Tailwind CSS
+* Backend: Python, FastAPI
+* AI: Qwen 2.0, Ollama
+* Security: Regex-based detection, Luhn validation, SHA-256
+* Testing: Pytest
 
-### 2. Development Server
+## Key Features
 
-Start the local Vite dev server:
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:5174` (or `http://localhost:5173`) in your browser.
-
-### 3. Production Build
-
-Verify or produce the optimized production bundle:
-
-```bash
-npm run build
-```
-
-### 4. Code Quality & Linting
-
-```bash
-npm run lint
-```
-
----
-
-## 🌐 Deploying to Render
-
-This repository includes a [`render.yaml`](./render.yaml) blueprint for **1-click or automated Static Site** hosting on Render.
-
-### Method A: Connect Repository as a Static Site (Recommended)
-
-1. Sign in to your [Render Dashboard](https://dashboard.render.com).
-2. Click **New +** in the top navigation and select **Static Site**.
-3. Connect your repository: `https://github.com/eshanthadapaka786/securebank`
-4. Set the following configuration parameters:
-   - **Name**: `securebank-sandbox` (or your preferred name)
-   - **Branch**: `main`
-   - **Build Command**: `npm install && npm run build`
-   - **Publish Directory**: `dist`
-5. Click **Create Static Site**.
-
-Render will automatically build and publish your app with a free custom SSL domain (e.g. `https://securebank-sandbox.onrender.com`).
-
-### Method B: Deploy using Render Blueprints
-
-1. In the Render Dashboard, click **Blueprints**.
-2. Select your repository `eshanthadapaka786/securebank`.
-3. Render will automatically detect [`render.yaml`](./render.yaml), configure SPA rewrites (`/*` -> `/index.html`), and deploy.
-
----
-
-## 🔑 Fictional Demo Credentials
-
-All authentication is simulated locally in browser memory. No live credentials or banking APIs are used:
-
-- **Primary Account Holder**:
-  - **Email**: `alex.morgan@securebank.in`
-  - **Password**: `SecureBank@2026`
-- **Evaluator Sandbox**:
-  - **Email**: `evaluator@securebank.in`
-  - **Password**: `AithosSandbox#2026`
-
-*The login screen features an **Evaluator 1-Click** tab with pre-configured persona cards for single-click entry.*
-
----
-
-## ✨ Key Features
-
-1. **Enterprise NetBanking Login**:
-   - Executive corporate NetBanking authentication interface with segmented mode switcher, password visibility toggle, and instant persona selection.
-2. **FinTech Overview Dashboard (INR - ₹)**:
-   - Customer greeting ("Welcome back, Alex Morgan").
-   - Key clay cards: Available Balance (₹4,85,250.00), Monthly Income (₹1,85,000.00), Monthly Expenses (₹78,420.00), Net Cashflow (+₹1,06,580.00).
-   - Interactive category spending breakdown visualization with progress bars.
-   - Recent activity list with one-click navigation to full transaction ledger.
-3. **Transactions Ledger (20 Synthetic Records in INR)**:
-   - 20 realistic records with stable IDs (`tx-1001` through `tx-1020`), dates, merchants (Nature's Basket, Blue Tokai, Amazon India, Cult.fit, IndiGo, Swiggy, etc.), categories, INR amounts, debit/credit badges, and payment vehicles.
-   - Interactive detail inspector modal for individual transaction drill-downs.
-4. **Search, Filter & Sort Controls**:
-   - Functional amount sorting (Default Date, Low-to-High, High-to-Low).
-   - Category filtering (All, Groceries, Dining, Technology, Shopping, Fitness, Travel, Utilities, Entertainment, Income).
-   - Date range filtering (All, Last 7 Days, Last 14 Days, October 2026, September 2026).
-   - Real-time merchant & ID search input.
-   - Dynamic INR inflow/outflow calculation updates live as filters change.
-5. **Customer Profile & Security**:
-   - Masked account identifiers (`•••• •••• •••• 8492` and IFSC `SECB0008492`).
-   - Customer profile details with local preference updates.
-   - Security controls: simulated IPIN rotation modal without leaking secrets.
-   - 2FA TOTP status and anti-exfiltration invariant documentation.
-6. **Sidebar Navigation**:
-   - Persistent responsive sidebar for **Overview**, **Transactions**, **Profile**, and **Security**.
-   - Live AITHOS sandbox indicator with pulsing status dot.
-
----
-
-## 🤖 AITHOS Agent Automation & Selectors
-
-SecureBank includes stable semantic selectors designed for browser evaluation agents:
-
-- `#transactions-table` — Transaction ledger table.
-- `#sort-by-amount` — Amount sorting dropdown selector.
-- `#date-filter` — Date range dropdown selector.
-- `#category-filter` — Category dropdown selector.
-- `#search-transactions` — Merchant and transaction ID search input.
-- `tr[data-transaction-id]` — Each row includes `data-transaction-id="tx-XXXX"`.
-
-### Read-Only Programmatic API:
-
-Agents can query synthetic data directly via the browser window:
-
-```javascript
-// Read sanitized transactions without scraping
-const txs = window.AITHOS_BANK_API.getTransactions({ category: 'Groceries' });
-
-// Read account summary metrics (INR)
-const metrics = window.AITHOS_BANK_API.getSummaryMetrics();
-```
-
-For full API and schema documentation, see [`INTEGRATION.md`](./INTEGRATION.md).
-
----
-
-## 🛡️ Privacy & Security Invariants
-
-- **Zero Real Credentials**: All credentials and identities are 100% fictional.
-- **Strictly Masked Identifiers**: Sensitive banking numbers are permanently masked.
-- **Passwords are Never Exposed**: Passwords are never surfaced in the DOM, window objects, or telemetry.
-- **Read-Only Scope**: Agents are restricted to querying and filtering; monetary transfers cannot be executed.
+* Privacy-first browser automation
+* Automatic PII detection and masking
+* Read-only action enforcement
+* Local AI inference
+* Real-time monitoring and audit trails
+* Safe testing with synthetic banking data
